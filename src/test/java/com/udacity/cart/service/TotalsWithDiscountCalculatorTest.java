@@ -16,42 +16,50 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TotalsWithDiscountCalculatorTest {
 
+	private static User user;
+
+	private TotalsWithDiscountCalculator totalsWithDiscountCalculator;
+
+	@BeforeAll
+	static void initUser(){
+		user = new User("UserPerson",UserType.REGULAR,100.00);
+	}
+
+	@BeforeEach
+	void initTotalsWithDiscountCalculator(){
+		totalsWithDiscountCalculator = new TotalsWithDiscountCalculator(user);
+	}
+
 
 	// Replace this with a Repeated test. Use a BeforeAll method to create a user whose credit
 	// will be reduced with each repetition, and use a BeforeEach method to create a new TotalsWithDiscountCalculator
 	// for each repetition.
-	@Test
-	public void totalsWithDiscount_getTotals_reducesUserCredit() {
-		User user = new User("UserPerson", UserType.REGULAR, 100.00);
-
-		TotalsWithDiscountCalculator totalsWithDiscountCalculator = new TotalsWithDiscountCalculator(user);
+	@RepeatedTest(3)
+	public void totalsWithDiscount_getTotals_reducesUserCredit(RepetitionInfo repetitionInfo) {
 		double expected;
-
-		for(int i = 1; i < 4; i++) {
-			totalsWithDiscountCalculator.getTotals(List.of(new CartItem("Twenty dollar item", 20.0, 0)));
-			expected = 100.0 - (i * 20);
-			assertEquals(expected, user.getCredit());
-		}
+		totalsWithDiscountCalculator.getTotals(List.of(new CartItem("Twenty dollar item", 20.0, 0)));
+		expected = 100.0 - (repetitionInfo.getCurrentRepetition() * 20);
+		assertEquals(expected, user.getCredit());
 	}
 
 	// Replace this with a parameterized test that uses a MethodSource to provide
 	// a stream of arguments allowing you to test both regular and platinum users with the
 	// same test.
-	@Test
-	public void totalsWithDiscounts_regularAndPlatinumUser_returnsDifferentSubtotal() {
-		User regularUser = new User("Regular User", UserType.REGULAR, 0.0);
-		CartTotals expectedRegularTotal = new CartTotals(10.0, 1.0);
+	@ParameterizedTest
+	@MethodSource("getUserArgumentProvider")
+	public void totalsWithDiscounts_regularAndPlatinumUser_returnsDifferentSubtotal(User regularUser, CartItem item, CartTotals totals) {
 		TotalsWithDiscountCalculator regularCalculator = new TotalsWithDiscountCalculator(regularUser);
-
-		User platinumUser = new User("Platinum User", UserType.PLATINUM, 0.0);
-		CartTotals expectedPlatinumTotal = new CartTotals(9.0, 1.0);
-		TotalsWithDiscountCalculator platinumCalculator = new TotalsWithDiscountCalculator(platinumUser);
-
-		CartItem item = new CartItem("Ten Dollar Item", 10.0, 1.0);
-
-		assertEquals(expectedRegularTotal, regularCalculator.getTotals(List.of(item)));
-		assertEquals(expectedPlatinumTotal, platinumCalculator.getTotals(List.of(item)));
-
-
+		assertEquals(totals, regularCalculator.getTotals(List.of(item)));
 	}
+
+	public static Stream<Arguments> getUserArgumentProvider() {
+		return Stream.of(
+				Arguments.of(new User("Regular User", UserType.REGULAR, 0.0),new CartItem("Ten Dollar Item",10.0,1.0),
+				new CartTotals(10.0,1.0)),
+				Arguments.of(new User("Platinum User", UserType.PLATINUM, 0.0),new CartItem("Ten Dollar Item",10.0,1.0),
+						new CartTotals(9.0,1.0))
+		);
+	}
+
+
 }
