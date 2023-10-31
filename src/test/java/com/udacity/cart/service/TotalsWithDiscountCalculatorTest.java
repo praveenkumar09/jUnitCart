@@ -20,6 +20,7 @@ class TotalsWithDiscountCalculatorTest {
 
 	private TotalsWithDiscountCalculator totalsWithDiscountCalculator;
 
+
 	@BeforeAll
 	static void initUser(){
 		user = new User("UserPerson",UserType.REGULAR,100.00);
@@ -59,6 +60,15 @@ class TotalsWithDiscountCalculatorTest {
 				Arguments.of(new User("Platinum User", UserType.PLATINUM, 0.0),new CartItem("Ten Dollar Item",10.0,1.0),
 						new CartTotals(9.0,1.0))
 		);
+	}
+
+	@Test
+	public void totalsWithDiscount_getTotals_CreditLessThanSubtotal() {
+		User userOb = new User("UserPerson",UserType.REGULAR,100.00);
+		TotalsWithDiscountCalculator totalsWithDiscountCalculatorOb = new TotalsWithDiscountCalculator(userOb);
+		CartTotals expectedTotals = new CartTotals(100.0,1.0);
+		CartTotals actualTotals = totalsWithDiscountCalculatorOb.getTotals(List.of(new CartItem("Two hundred dollar item", 200.0, 1.0)));
+		assertEquals(expectedTotals,actualTotals);
 	}
 
 
